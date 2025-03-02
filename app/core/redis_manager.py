@@ -16,6 +16,13 @@ class RedisManager:
         # TODO: Initialize connection pools for each Redis node
         # 1. Create connection pools for each Redis node
         # 2. Initialize Redis clients
+        for node in redis_nodes:
+            try:
+                pool = redis.ConnectionPool.from_url(node)
+                self.connection_pools[node] = pool
+                self.redis_clients[node] = redis.Redis(connection_pool=pool)
+            except Exception as e:
+                print(f"Failed to initialize Redis connection for {node}: {str(e)}")
         pass
 
     async def get_connection(self, key: str) -> redis.Redis:
@@ -31,7 +38,9 @@ class RedisManager:
         # TODO: Implement getting the appropriate Redis connection
         # 1. Use consistent hashing to determine which node should handle this key
         # 2. Return the Redis client for that node
-        pass
+
+        node = self.consistent_hash.get_node(key)
+        return self.redis_clients[node]
 
     async def increment(self, key: str, amount: int = 1) -> int:
         """
@@ -48,7 +57,8 @@ class RedisManager:
         # 1. Get the appropriate Redis connection
         # 2. Increment the counter
         # 3. Handle potential failures and retries
-        return 0
+        conn = await self.get_connection(key)
+        conn.incrby(key, amount)
 
     async def get(self, key: str) -> Optional[int]:
         """
@@ -64,4 +74,6 @@ class RedisManager:
         # 1. Get the appropriate Redis connection
         # 2. Retrieve the value
         # 3. Handle potential failures and retries
-        return None
+        conn = await self.get_connection(key)
+        count = conn.get(key)
+        return int(count) if count else 0, "redis"

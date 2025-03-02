@@ -17,7 +17,8 @@ class VisitCounterService:
         Args:
             page_id: Unique identifier for the page
         """
-        self.mem_manager.increment(page_id)
+        # self.mem_manager.increment(page_id)
+        await self.redis_manager.increment(page_id)
 
     async def get_visit_count(self, page_id: str) -> int:
         """
@@ -29,4 +30,7 @@ class VisitCounterService:
         Returns:
             Current visit count
         """
-        return self.mem_manager.get(page_id)
+        # return self.mem_manager.get(page_id)
+        counts, via = await self.redis_manager.get(page_id)
+        print(f"counts: {counts}, via: {via}")
+        return counts, via
