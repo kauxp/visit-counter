@@ -30,7 +30,12 @@ class VisitCounterService:
         Returns:
             Current visit count
         """
-        # return self.mem_manager.get(page_id)
-        counts, via = await self.redis_manager.get(page_id)
-        print(f"counts: {counts}, via: {via}")
-        return counts, via
+        dp_data, via = self.mem_manager.get(page_id)
+
+        if (dp_data is None) or ((dp_data is not None) and ((datetime.now() - dp_data["on"]).seconds > 5)):
+            counts, via = await self.redis_manager.get(page_id)
+            self.mem_manager.set_page_visit(page_id, counts)
+            return counts, via
+        else:
+            counts =  dp_data["count"]
+            return counts, via
