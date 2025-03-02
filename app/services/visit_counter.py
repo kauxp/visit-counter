@@ -2,11 +2,13 @@ from typing import Dict, List, Any
 import asyncio
 from datetime import datetime
 from ..core.redis_manager import RedisManager
+from ..core.mem_cache import MemCache
 
 class VisitCounterService:
     def __init__(self):
         """Initialize the visit counter service with Redis manager"""
         self.redis_manager = RedisManager()
+        self.mem_manager = MemCache()
 
     async def increment_visit(self, page_id: str) -> None:
         """
@@ -15,8 +17,7 @@ class VisitCounterService:
         Args:
             page_id: Unique identifier for the page
         """
-        # TODO: Implement visit count increment
-        pass
+        self.mem_manager.increment(page_id)
 
     async def get_visit_count(self, page_id: str) -> int:
         """
@@ -28,5 +29,4 @@ class VisitCounterService:
         Returns:
             Current visit count
         """
-        # TODO: Implement getting visit count
-        return 0
+        return self.mem_manager.get(page_id)
