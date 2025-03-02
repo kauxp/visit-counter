@@ -58,7 +58,7 @@ class RedisManager:
         # 2. Increment the counter
         # 3. Handle potential failures and retries
         conn = await self.get_connection(key)
-        conn.incrby(key, amount)
+        return conn.incrby(key, amount)
 
     async def get(self, key: str) -> Optional[int]:
         """
