@@ -60,7 +60,7 @@ class RedisManager:
         conn = await self.get_connection(key)
         return conn.incrby(key, amount)
 
-    async def get(self, key: str) -> Optional[int]:
+    async def get(self, key: str) -> Optional[Any]:
         """
         Get value for a key from Redis
         
@@ -68,12 +68,19 @@ class RedisManager:
             key: The key to get
             
         Returns:
-            Value of the key or None if not found
+            Tuple of (value of the key or 0 if not found, shard identifier)
         """
         # TODO: Implement getting a value
         # 1. Get the appropriate Redis connection
         # 2. Retrieve the value
         # 3. Handle potential failures and retries
+        node = self.consistent_hash.get_node(key)
+        print(node)
         conn = await self.get_connection(key)
         count = conn.get(key)
-        return int(count) if count else 0, "redis"
+        
+        # Extract a unique identifier from the Redis node URL
+        # Parse the hostname from URL to get a unique identifier for each Redis node
+        host = node.split("//")[1].split(":")[0]  # This extracts the hostname (redis1, redis2, etc.)
+        
+        return int(count) if count else 0, f"{host}"
